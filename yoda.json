@@ -1,0 +1,27 @@
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+# Função que obtém o clima usando OpenWeatherMap API
+def get_weather(city):
+    api_key = "SUA_API_KEY"
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric&lang=pt_br"
+    response = requests.get(url).json()
+    if response.get("main"):
+        temp = response["main"]["temp"]
+        description = response["weather"][0]["description"]
+        return f"{description.capitalize()}, está. Temperatura de {temp} graus, temos."
+    else:
+        return "Cidade encontrar, não consegui."
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    req = request.get_json()
+    city = req["queryResult"]["parameters"].get("geo-city", "São Paulo")
+    weather_response = get_weather(city)
+    yoda_response = f"{weather_response} Hmmmm."
+    return jsonify({"fulfillmentText": yoda_response})
+
+if __name__ == '__main__':
+    app.run(debug=True)
